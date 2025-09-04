@@ -4,10 +4,7 @@ const { customError } = require("../../utils/customError");
 const UserModel = require("../models/user.model");
 const { validateUser } = require("../validation/user.validation");
 const { Otp, sendMail } = require("../helpers/nodemailer");
-const {
-  RegistrationTemplate,
-  resendOtpTemplate,
-} = require("../template/emailtemplate");
+const { RegistrationTemplate, resendOtpTemplate,} = require("../template/emailtemplate");
 const { sendSMS } = require("../helpers/sms");
 const userModel = require("../models/user.model");
 const jwt = require("jsonwebtoken");

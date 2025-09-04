@@ -11,6 +11,6 @@ exports.sendSMS = async (phoneNumber, smsBody) => {
     });
     console.log(response);
   } catch (error) {
-    console.log("Error sending sms", error);
+    console.log("Error sending sms", error); 
   }
 };
