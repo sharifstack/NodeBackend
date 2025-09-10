@@ -5,11 +5,11 @@ const { customError } = require("../../utils/customError");
 const discountSchema = new mongoose.Schema(
   {
     discountValidFrom: {
-      type: Boolean,
+      type: Date,
       default: false,
     },
     discountValidTo: {
-      type: Boolean,
+      type: Date,
       default: false,
     },
     discountName: {
@@ -30,12 +30,12 @@ const discountSchema = new mongoose.Schema(
     },
     discountType: {
       type: String,
-      enum: ["Tk", "percentage"],
+      enum: ["tk", "percentage"],
       required: true,
     },
-    discountTargetType: {
+    discountPlan: {
       type: String,
-      enum: ["flat", "category", "product"],
+      enum: ["flat", "category", "subcategory", "product"],
       required: true,
     },
     targetProduct: {

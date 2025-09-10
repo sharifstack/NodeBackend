@@ -21,9 +21,14 @@ const categorySchema = new mongoose.Schema(
         ref: "SubCategory",
       },
     ],
+
+    discount: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Discount",
+    },
     isActive: {
       type: Boolean,
-      default: false,
+      default: true,
     },
   },
   {
@@ -55,4 +60,5 @@ categorySchema.pre("save", async function (next) {
   next();
 });
 
-module.exports = mongoose.models.Category || mongoose.model("Category", categorySchema);
+module.exports =
+  mongoose.models.Category || mongoose.model("Category", categorySchema);

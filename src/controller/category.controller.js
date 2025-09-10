@@ -20,7 +20,10 @@ exports.createCategory = asyncHandler(async (req, res) => {
 });
 
 exports.getAllCategory = asyncHandler(async (req, res) => {
-  const category = await categoryModel.find().sort({ createdAt: -1 });
+  const category = await categoryModel
+    .find()
+    .populate("subCategory discount")
+    .sort({ createdAt: -1 });
   if (!category) throw new customError(500, "category not found");
   apiResponse.sendsuccess(res, 200, "category found", category);
 });
@@ -68,5 +71,10 @@ exports.deleteCategory = asyncHandler(async (req, res) => {
   //database
   const removecategory = await categoryModel.findOneAndDelete({ slug: slug });
 
-  apiResponse.sendsuccess(res, 200, "category deleted succesfully", removecategory);
+  apiResponse.sendsuccess(
+    res,
+    200,
+    "category deleted succesfully",
+    removecategory
+  );
 });

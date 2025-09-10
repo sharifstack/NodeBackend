@@ -1,67 +1,82 @@
-const joi = require("joi");
+const Joi = require("joi");
+const mongoose = require("mongoose");
 const { customError } = require("../../utils/customError");
 
-// Helper regex for MongoDB ObjectId
-const objectIdPattern = /^[0-9a-fA-F]{24}$/;
+// Helper: check valid ObjectId
+const isValidObjectId = (value, helpers) => {
+  if (!mongoose.Types.ObjectId.isValid(value)) {
+    return helpers.error("any.invalid");
+  }
+  return value;
+};
 
-// Discount validation schema
-const discountValidationSchema = joi.object(
+// Discount Validation Schema
+const discountValidationSchema = Joi.object(
   {
-    discountName: joi.string().trim().required().messages({
-      "string.empty": "Discount name is required.",
-      "any.required": "Discount name field cannot be empty.",
+    discountValidFrom: Joi.date().required().messages({
+      "date.base": "Discount valid from must be a valid date.",
+      "any.required": "Discount valid from date is required.",
     }),
-    discountType: joi.string().valid("Tk", "percentage").required().messages({
-      "any.only": "Discount type must be either 'Tk' or 'percentage'.",
+    discountValidTo: Joi.date()
+      .greater(Joi.ref("discountValidFrom"))
+      .required()
+      .messages({
+        "date.base": "Discount valid to must be a valid date.",
+        "date.greater":
+          "Discount valid to date must be after discount valid from date.",
+        "any.required": "Discount valid to date is required.",
+      }),
+    discountName: Joi.string().trim().required().messages({
+      "string.empty": "Discount name cannot be empty.",
+      "any.required": "Discount name is required.",
+    }),
+    discountValueByAmount: Joi.number().min(0).messages({
+      "number.base": "Discount value by amount must be a number.",
+      "number.min": "Discount value by amount cannot be negative.",
+    }),
+    discountValueByPercentance: Joi.number().min(0).max(100).messages({
+      "number.base": "Discount value by percentage must be a number.",
+      "number.min": "Discount percentage cannot be negative.",
+      "number.max": "Discount percentage cannot be greater than 100.",
+    }),
+    discountType: Joi.string().valid("tk", "percentance").required().messages({
+      "any.only": "Discount type must be either 'tk' or 'percentance'.",
       "any.required": "Discount type is required.",
     }),
-    discountTargetType: joi.string().valid("flat", "category", "product").required().messages({
-      "any.only": "Discount target type must be 'flat', 'category', or 'product'.",
-      "any.required": "Discount target type is required.",
-    }),
-    discountValueByAmount: joi.when("discountType", {
-      is: "Tk",
-      then: joi.number().min(0).required().messages({
-        "number.base": "Discount amount must be a number.",
-        "any.required": "Discount amount is required for 'Tk' type.",
+    discountPlan: Joi.string()
+      .valid("flat", "category", "product", "subcategory")
+      .required()
+      .messages({
+        "any.only":
+          "Discount plan must be either 'flat', 'category' or 'product' subcategory.",
+        "any.required": "Discount plan is required.",
       }),
-      otherwise: joi.number().min(0).optional(),
+    targetProduct: Joi.string().allow(null).messages({
+      "any.invalid": "Target product ID is not valid.",
     }),
-    discountValueByPercentage: joi.when("discountType", {
-      is: "percentage",
-      then: joi.number().min(0).max(100).required().messages({
-        "number.base": "Discount percentage must be a number.",
-        "number.max": "Discount percentage cannot be more than 100.",
-        "any.required": "Discount percentage is required for 'percentage' type.",
-      }),
-      otherwise: joi.number().optional(),
+    targetCategory: Joi.string().allow(null).messages({
+      "any.invalid": "Target category ID is not valid.",
     }),
-    targetProduct: joi.string().pattern(objectIdPattern).when("discountTargetType", {
-      is: "product",
-      then: joi.required().messages({ "any.required": "Target product is required for product discount." }),
-      otherwise: joi.optional(),
+    targetSubCategory: Joi.string().allow(null).messages({
+      "any.invalid": "Target subcategory ID is not valid.",
     }),
-    targetCategory: joi.string().pattern(objectIdPattern).when("discountTargetType", {
-      is: "category",
-      then: joi.required().messages({ "any.required": "Target category is required for category discount." }),
-      otherwise: joi.optional(),
-    }),
-    targetSubCategory: joi.string().pattern(objectIdPattern).optional(),
-    discountValidFrom: joi.boolean().optional(),
-    discountValidTo: joi.boolean().optional(),
-    icon: joi.string().default("disc"),
-    color: joi.string().default("navy"),
-    isActive: joi.boolean().default(true),
+    isActive: Joi.boolean().default(true),
   },
-  { allowUnknown: true }
+  {
+    allowUnknown: true,
+  }
 );
 
+// Export validation function
 exports.validateDiscount = async (req) => {
   try {
     const value = await discountValidationSchema.validateAsync(req.body);
     return value;
   } catch (error) {
-    console.log("Error from discount validation", error);
-    throw new customError(401, error.details ? error.details[0].message : error.message);
+    console.log("Error from validate Discount method:", error);
+    throw new customError(
+      401,
+      error.details ? error.details[0].message : error.message
+    );
   }
 };

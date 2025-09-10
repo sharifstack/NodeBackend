@@ -11,7 +11,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 //==routes
-app.use("/api/v1", require("./routes/api/index.api"));
+app.use("/api/v1", require("./routes/index.api"));
 
 //==global error handler
 app.use(globalErrorHandler);
