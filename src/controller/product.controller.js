@@ -4,6 +4,7 @@ const { customError } = require("../../utils/customError");
 const {
   uploadCloudinaryFIle,
   deleteCloudinaryFile,
+  PublicId,
 } = require("../helpers/cloudinary");
 const { validateProduct } = require("../validation/product.validation");
 const productModel = require("../models/product.model");
@@ -13,6 +14,8 @@ const { barCodeGenerator } = require("../helpers/barCodeGenerator");
 //crating product
 exports.createProduct = asyncHandler(async (req, res) => {
   const productData = await validateProduct(req);
+  if (!productData)
+    throw new customError(500, "Product Information is missing");
 
   //destructuring image form productData
   const { image } = productData;
@@ -81,4 +84,92 @@ exports.singleProduct = asyncHandler(async (req, res) => {
   if (!product) throw new customError(401, "Product Not Found");
 
   apiResponse.sendsuccess(res, 200, "Product Has Been Found", product);
+});
+
+//Update Products
+
+exports.updateProduct = asyncHandler(async (req, res) => {
+  const { slug } = req.params;
+  if (!slug) throw new customError(401, "slug is missing");
+
+  const productupdate = await productModel.findOneAndUpdate(
+    { slug: slug },
+    { ...req.body },
+    { new: true }
+  );
+
+  if (!productupdate) throw new customError(500, "product not found");
+
+  apiResponse.sendsuccess(
+    res,
+    200,
+    "product has been updated sucessfully",
+    productupdate
+  );
+});
+
+//upload product images
+
+exports.uploadProductImage = asyncHandler(async (req, res) => {
+  const { slug } = req.params;
+
+  if (!slug) throw new customError(401, "slug is missing");
+
+  const product = await productModel.findOne({ slug: slug });
+  if (!product) throw new customError(401, "Product Not Found");
+
+  //uploading to cloudinary
+  for (let img of req?.files?.image) {
+    const imgURl = await uploadCloudinaryFIle(img.path);
+    product.image.push(imgURl);
+  }
+
+  await product.save();
+  apiResponse.sendsuccess(
+    res,
+    201,
+    "Image has been uploaded sucessfully",
+    product
+  );
+});
+
+//delete existing product image from cloudinary
+
+exports.removeProductImage = asyncHandler(async (req, res) => {
+  const { slug } = req.params;
+  if (!slug) throw new customError(401, "slug is missing");
+
+  const { image_Id } = req.body;
+  if (!image_Id || !image_Id.length)
+    throw new customError(401, "Image ID is Missing");
+
+  const product = await productModel.findOne({ slug: slug });
+  if (!product) throw new customError(401, "product not found");
+
+  const updatedImageList = await product.image.filter(
+    (img) => img !== image_Id
+  );
+  const Public_Id = PublicId(image_Id);
+  await deleteCloudinaryFile(Public_Id);
+
+  product.image = updatedImageList;
+  await product.save();
+
+  apiResponse.sendsuccess(res, 201, "Product Image has been removed", product);
+});
+
+//delete product and remove image from cloudinary
+
+exports.deleteProduct = asyncHandler(async (req, res) => {
+  const { slug } = req.params;
+  if (!slug) throw new customError(401, "slug is missing");
+
+  const product = await productModel.findOne({ slug: slug });
+  if (!product) throw new customError(401, "product not found");
+
+  for (let img of product.image) {
+    const public_id = PublicId(img);
+    const result = await deleteCloudinaryFile(public_id);
+    console.log("deleted", result);
+  }
 });

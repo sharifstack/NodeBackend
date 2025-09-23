@@ -125,7 +125,6 @@ const productSchema = new mongoose.Schema(
     },
     retailPrice: {
       type: Number,
-      required: true,
     },
     retailPriceProfitAmount: {
       type: Number,
@@ -138,7 +137,6 @@ const productSchema = new mongoose.Schema(
     },
     wholesalePrice: {
       type: Number,
-      required: true,
     },
     alertQuantity: {
       type: Number,
