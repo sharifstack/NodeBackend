@@ -24,6 +24,9 @@ _.route("/delete-product/:slug").delete(
   productController.deleteProduct
 );
 
+_.route("/search-products").get(productController.searchByProducts)
+_.route("/product-pagination").get(productController.pagination)
+
 
 
 module.exports = _;

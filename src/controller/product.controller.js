@@ -172,4 +172,75 @@ exports.deleteProduct = asyncHandler(async (req, res) => {
     const result = await deleteCloudinaryFile(public_id);
     console.log("deleted", result);
   }
+
+  const deleteProduct = await productModel.deleteOne({ _id: product._id });
+  if (!deleteProduct)
+    throw new customError(401, "Failed to delete the product");
+
+  apiResponse.sendsuccess(
+    res,
+    200,
+    "Product has been deleted sucessfully",
+    product
+  );
+});
+
+//search by products using query
+
+exports.searchByProducts = asyncHandler(async (req, res) => {
+  const { category, subcategory, brand, tag } = req.query;
+
+  let query = {};
+
+  if (category) {
+    query.category = category;
+  }
+
+  if (subcategory) {
+    query.subcategory = subcategory;
+  }
+
+  if (brand) {
+    if (Array.isArray(brand)) {
+      query.brand = { $in: brand };
+    } else {
+      query.brand = brand;
+    }
+  }
+
+  if (tag) {
+    if (Array.isArray(tag)) {
+      query.tag = { $in: tag };
+    } else {
+      query.tag = tag;
+    }
+  }
+
+  const product = await productModel.find(query);
+  if (product.length == 0) throw new customError(401, "product not found");
+
+  apiResponse.sendsuccess(res, 200, "Product fetched successfully", product);
+});
+
+//All product list // pagination
+
+exports.pagination = asyncHandler(async (req, res) => {
+  const { item, page } = req.query;
+
+  const itemNum = parseInt(item, 20);
+  const pageNum = parseInt(page, 20);
+  if (!itemNum || !pageNum)
+    throw new customError(401, "item or page not found");
+  const skipItems = (pageNum - 1) * itemNum;
+  const totalItems = await productModel.countDocuments();
+  const totalPages = Math.round(totalItems / item);
+  const product = await productModel.find().skip(skipItems).limit(itemNum);
+
+  if (product.length == 0) throw new customError(401, "product not found");
+
+  apiResponse.sendsuccess(res, 200, "Product fetched successfully", {
+    ...product,
+    totalPages,
+    totalItems,
+  });
 });
