@@ -24,9 +24,10 @@ _.route("/delete-product/:slug").delete(
   productController.deleteProduct
 );
 
-_.route("/search-products").get(productController.searchByProducts)
-_.route("/product-pagination").get(productController.pagination)
-
-
+_.route("/search-products").get(productController.searchByProducts);
+_.route("/product-pagination").get(productController.pagination);
+_.route("/product-pricerange").get(productController.priceRange);
+_.route("/product-productodering").get(productController.productOdering);
+_.route("/product-productstatus").put(productController.productStatus);
 
 module.exports = _;

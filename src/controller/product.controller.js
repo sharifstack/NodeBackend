@@ -244,3 +244,80 @@ exports.pagination = asyncHandler(async (req, res) => {
     totalItems,
   });
 });
+
+//price range from  query
+
+exports.priceRange = asyncHandler(async (req, res) => {
+  const { maxPrice, minPrice } = req.query;
+  if (!minPrice && !maxPrice)
+    throw new custom(400, "Minimun or Maximun Price is Missing");
+
+  let query;
+  if (minPrice && maxPrice) {
+    query = { $gte: minPrice, $lte: maxPrice };
+  } else if (minPrice) {
+    query = { $gte: minPrice };
+  } else if (maxPrice) {
+    query = { $lte: maxPrice };
+  } else {
+    query = {};
+  }
+
+  const product = await productModel.find({ retailPrice: query });
+  if (product.length == 0) throw new customError(400, "product not found");
+
+  apiResponse.sendsuccess(
+    res,
+    200,
+    "Products has been found In This Price Range",
+    product
+  );
+});
+
+//product items ordering
+
+exports.productOdering = asyncHandler(async (req, res) => {
+  const { sort_by } = req.query;
+  if (!sort_by) throw new customError(400, "Query is missing ");
+
+  let query = {};
+  if (sort_by == "date-ascending") {
+    query = { createdAt: 1 };
+  } else if (sort_by == "date-descending") {
+    query = { createdAt: -1 };
+  } else if (sort_by == "price-ascending") {
+    query = { retailPrice: 1 };
+  } else if (sort_by == "price-descending") {
+    query = { retailPrice: -1 };
+  } else if (sort_by == "name-ascending") {
+    query = { Name: 1 };
+  } else if (sort_by == "name-descending") {
+    query = { Name: -1 };
+  } else {
+    query = {};
+  }
+
+  const product = await productModel.find({}).sort(query);
+  if (product.length == 0) throw new customError(400, "product not fount");
+  apiResponse.sendsuccess(res, 200, "Products  has been found", product);
+});
+
+//product activity status change
+exports.productStatus = asyncHandler(async (req, res) => {
+  const { slug, status } = req.query;
+  if (!slug) throw new customError(400, "slug is missing");
+
+  const product = await productModel.findOne({ slug });
+  if (!product) throw new customError(401, "product not found");
+
+  product.isActive = status == "active" ? true : false;
+
+  await product.save();
+
+  apiResponse.sendsuccess(
+    res,
+    200,
+    "product status updated successfully",
+    product
+  );
+});

@@ -4,7 +4,10 @@ const { customError } = require("../../utils/customError");
 const UserModel = require("../models/user.model");
 const { validateUser } = require("../validation/user.validation");
 const { Otp, sendMail } = require("../helpers/nodemailer");
-const { RegistrationTemplate, resendOtpTemplate,} = require("../template/emailtemplate");
+const {
+  RegistrationTemplate,
+  resendOtpTemplate,
+} = require("../template/emailtemplate");
 const { sendSMS } = require("../helpers/sms");
 const userModel = require("../models/user.model");
 const jwt = require("jsonwebtoken");
@@ -53,14 +56,6 @@ Verify your account by clicking the link: ${verifyEmailLink}.
 This code will expire in ${new Date(expireTime).getMinutes()} minutes.`;
     const sms = await sendSMS(user.phoneNumber, smsBody);
     console.log(sms);
-
-    // if (sms?.data?.response_code !== 202) {
-    //   throw new customError(
-    //     500,
-    //     "Failed to send SMS verification.",
-    //     sms?.error_message
-    //   );
-    // }
   }
   await user.save();
   apiResponse.sendsuccess(res, 201, "Registration successful", {
