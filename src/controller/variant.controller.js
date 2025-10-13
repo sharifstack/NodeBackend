@@ -72,6 +72,114 @@ exports.singleVariant = asyncHandler(async (req, res) => {
   apiResponse.sendsuccess(res, 200, "Single variant details", singleVariant);
 });
 
+//update variant info
+
+exports.updateVariantInfo = asyncHandler(async (req, res) => {
+  const { slug } = req.params;
+  if (!slug) throw new customError(400, "slug is missing");
+
+  const data = req.body;
+
+  for (let field in data) {
+    if (data[field] == "" || undefined || null) {
+      throw new customError(400, `${field} is missing`);
+    }
+  }
+  const variant = await variantModel.findOne({ slug });
+  if (!variant) throw new customError(400, "variant update failed");
+
+  const isMatching = data.product !== variant._id;
+  if (!isMatching) {
+    productModel.findOneAndUpdate(
+      { _id: variant.product },
+      { $pull: { variant: variant._id } }
+    );
+  } else {
+    productModel.findOneAndUpdate(
+      { _id: data.product },
+      { $push: { variant: variant._id } }
+    );
+  }
+
+  const updatingVarinatInfo = await variantModel.findOneAndUpdate(
+    { slug },
+    { ...data },
+    {
+      new: true,
+    }
+  );
+
+  if (!updatingVarinatInfo)
+    throw new customError(400, "updatingVarinat failed");
+
+  apiResponse.sendsuccess(
+    res,
+    201,
+    "Variant has been updated successfully",
+    updatingVarinatInfo
+  );
+});
+
+//update variant img
+
+exports.updateVariantImg = asyncHandler(async (req, res) => {
+  const { slug } = req.params;
+  if (!slug) throw new customError(400, "slug is required");
+
+  const variant = await variantModel.findOne({ slug: slug });
+  console.log(variant);
+  if (!variant) throw new customError(400, "Variant Not Found");
+
+  const imgUrl = await Promise.all(
+    req.files.image.map((img) => uploadCloudinaryFIle(img.path))
+  );
+
+  const updatevariant = await variantModel.findOneAndUpdate(
+    { slug },
+    {
+      $push: { image: imgUrl },
+    },
+    { new: true }
+  );
+  apiResponse.sendsuccess(
+    res,
+    200,
+    "Variant image has been updated",
+    updatevariant
+  );
+});
+
+//delete variant img
+
+exports.deleteVariantImg = asyncHandler(async (req, res) => {
+  const { slug } = req.params;
+  if (!slug) throw new customError(400, "slug is required");
+
+  const { image_Id } = req.body;
+
+  if (!image_Id || !image_Id.length)
+    throw new customError(401, "Image ID is Missing");
+
+  const variant = await variantModel.findOne({ slug });
+  if (!variant) throw new customError(400, "variant not found");
+
+  const updatedImageList = await variant.image.filter(
+    (image) => image !== image_Id
+  );
+
+  const deleteimg = await Promise.all(
+    [image_Id].map((imgUrl) => {
+      return deleteCloudinaryFile(PublicId(imgUrl));
+    })
+  );
+
+  if (!deleteimg) throw new customError(400, "Image deletion failed");
+  variant.image = updatedImageList;
+  await variant.save();
+
+  apiResponse.sendsuccess(res, 200, "Image has been deleted", variant);
+});
+
 //delete variant
 exports.deleteVariant = asyncHandler(async (req, res) => {
   const { slug } = req.params;

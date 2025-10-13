@@ -86,7 +86,7 @@ exports.singleProduct = asyncHandler(async (req, res) => {
   apiResponse.sendsuccess(res, 200, "Product Has Been Found", product);
 });
 
-//Update Products
+//Update Products info
 
 exports.updateProduct = asyncHandler(async (req, res) => {
   const { slug } = req.params;
