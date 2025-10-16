@@ -61,16 +61,11 @@ const productSchema = new mongoose.Schema(
         ref: "Review",
       },
     ],
-    warrantyInformation: {
+    warranty: {
+      type: mongoose.Schema.Types.ObjectId,
       type: String,
     },
-    warrantyClaim: {
-      type: Boolean,
-      default: true,
-    },
-    warrantyexpires: {
-      type: Date,
-    },
+   
     availabilityStatus: {
       type: String,
       enum: ["In Stock", "Out Of Stock", "Pre-Order"],
