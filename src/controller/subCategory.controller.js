@@ -4,6 +4,7 @@ const { customError } = require("../../utils/customError");
 const subCategoryModel = require("../models/subCategory.model");
 const categoryModel = require("../models/category.model");
 const { validateSubCategory } = require("../validation/subCategory.validation");
+const couponModel = require("../models/coupon.model");
 
 //Create Sub_Category
 exports.createSubcategory = asyncHandler(async (req, res) => {
@@ -87,7 +88,7 @@ exports.deleteSubcategory = asyncHandler(async (req, res) => {
     { _id: subCategoryInstance.category },
     { $pull: { subCategory: subCategoryInstance._id } },
     { new: true }
-  );  
+  );
   apiResponse.sendsuccess(
     res,
     201,
@@ -95,3 +96,4 @@ exports.deleteSubcategory = asyncHandler(async (req, res) => {
     subCategoryInstance
   );
 });
+
