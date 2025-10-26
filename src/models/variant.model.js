@@ -22,6 +22,12 @@ const variantSchema = new mongoose.Schema(
       type: String,
       unique: true,
     },
+    reviews: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Review",
+      },
+    ],
     size: {
       type: String,
       default: "N/A",

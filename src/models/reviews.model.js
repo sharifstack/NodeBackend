@@ -4,7 +4,7 @@ const { customError } = require("../../utils/customError");
 
 const reviewsSchema = new mongoose.Schema(
   {
-    reviewerName: {
+    reviewer: {
       type: mongoose.Types.ObjectId,
       ref: "User",
     },
@@ -13,6 +13,7 @@ const reviewsSchema = new mongoose.Schema(
     },
     rating: {
       type: Number,
+      max: [5, "max rating 5 "],
     },
   },
 
@@ -21,20 +22,5 @@ const reviewsSchema = new mongoose.Schema(
   }
 );
 
-//-------checking is the slug already exist or not-------//
-categorySchema.pre("save", async function (next) {
-  const isWarehouseExists = await this.constructor.findOne({
-    wareHousename: this.wareHousename,
-  });
-  if (
-    isWarehouseExists &&
-    isWarehouseExists._id.toString() !== this._id.toString()
-  ) {
-    throw new customError(401, "Warehouse Name Already Exists");
-  }
-  next();
-});
-
 module.exports =
-  mongoose.models.Review ||
-  mongoose.model("Review", reviewsSchema);
+  mongoose.models.Review || mongoose.model("Review", reviewsSchema);
