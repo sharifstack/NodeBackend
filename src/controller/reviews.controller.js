@@ -95,24 +95,27 @@ exports.deleteReview = asyncHandler(async (req, res) => {
   if (!deleteReview) throw new customError(400, "no reviews found");
 
   //removing the review from product and variant
-  const updateProduct = await productModel.findOneAndUpdate(
-    {
-      _id: deleteReview.product,
-    },
-    { $pull: { reviews: deleteReview._id } },
-    { new: true }
-  );
-  if (!updateProduct) throw new customError(400, "updating product failed");
+  //for product
+  if (deleteReview.product) {
+    await productModel.findOneAndUpdate(
+      {
+        _id: deleteReview.product,
+      },
+      { $pull: { reviews: deleteReview._id } },
+      { new: true }
+    );
+  }
 
   //for variant
-  const updateVariant = await variantModel.findOneAndUpdate(
-    {
-      _id: deleteReview.variant,
-    },
-    { $pull: { reviews: deleteReview._id } },
-    { new: true }
-  );
-  if (!updateVariant) throw new customError(400, "updating variant failed");
+  if (deleteReview.variant) {
+    await variantModel.findOneAndUpdate(
+      {
+        _id: deleteReview.variant,
+      },
+      { $pull: { reviews: deleteReview._id } },
+      { new: true }
+    );
+  }
 
   apiResponse.sendsuccess(res, 200, "review  has been deleted", deleteReview);
 });

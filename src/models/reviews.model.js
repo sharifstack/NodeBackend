@@ -15,6 +15,14 @@ const reviewsSchema = new mongoose.Schema(
       type: Number,
       max: [5, "max rating 5 "],
     },
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+    },
+    variant: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Variant",
+    },
   },
 
   {
