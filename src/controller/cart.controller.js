@@ -4,8 +4,10 @@ const { customError } = require("../../utils/customError");
 const { validateCart } = require("../validation/cart.validation");
 const productModel = require("../models/product.model");
 const cartModel = require("../models/cart.model");
+const couponModel = require("../models/coupon.model");
+const { application } = require("express");
 
-//full add to cart
+//create add to cart
 exports.addToCart = asyncHandler(async (req, res) => {
   const { user, guestId, productId, variantId, quantity, coupon, color, size } =
     await validateCart(req);
@@ -93,4 +95,61 @@ exports.addToCart = asyncHandler(async (req, res) => {
 
   await existingCart.save();
   apiResponse.sendsuccess(res, 200, "success", existingCart);
+});
+
+//applyCoupon function
+
+const applyCoupon = async (actualPrice, coupon) => {
+  let priceAfterDiscount = 0;
+  let totalDiscountAmount = 0;
+  try {
+    const appliedCoupon = await couponModel.findOne({ couponCode: coupon });
+    const { expireAt, usageLimit, usedCount, discountType, discountValue } =
+      appliedCoupon;
+
+    if (usageLimit < usedCount)
+      throw new customError(404, "coupon has been expired");
+
+    if (discountType == "percentage") {
+      totalDiscountAmount = Math.ceil((actualPrice * discountValue) / 100);
+      priceAfterDiscount = Math.ceil(actualPrice - totalDiscountAmount);
+    } else {
+      priceAfterDiscount = actualPrice - discountValue;
+    }
+
+    appliedCoupon.usedCount += 1;
+    await appliedCoupon.save();
+    return {
+      priceAfterDiscount,
+      totalDiscountAmount,
+      appliedCoupon,
+    };
+  } catch (error) {
+    if (applyCoupon) {
+      await couponModel.findOneAndUpdate(
+        { couponCode: coupon },
+        { usedCount: usedCount - 1 }
+      );
+    }
+  }
+  console.log("eror from apply coupon", error);
+};
+
+//apply coupon controller
+
+exports.applyCoupon = asyncHandler(async (req, res) => {
+  const { coupon, user, guestId } = req.body;
+
+  const filter = user ? { user } : { guestId };
+
+  const cart = await cartModel.findOne(filter);
+  const { priceAfterDiscount, totalDiscountAmount, appliedCoupon } =
+    await applyCoupon(cart.totalAmountOfWholeProduct, coupon);
+
+  cart.coupon = appliedCoupon._id;
+  cart.discountAmount = totalDiscountAmount;
+  cart.discountType = appliedCoupon.discountType;
+  cart.totalAmountOfWholeProduct = priceAfterDiscount;
+  await cart.save();
+  apiResponse.sendsuccess(res, 200, "Coupon Applied Successfully", cart);
 });
