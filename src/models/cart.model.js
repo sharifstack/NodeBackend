@@ -1,3 +1,4 @@
+const { type } = require("express/lib/response");
 const mongoose = require("mongoose");
 
 const cartSchema = new mongoose.Schema(
@@ -61,6 +62,10 @@ const cartSchema = new mongoose.Schema(
     },
     discountType: {
       type: String,
+    },
+    totalProducts: {
+      type: Number,
+      default: 0,
     },
     totalAmountOfWholeProduct: {
       type: Number,
