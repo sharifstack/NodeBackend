@@ -77,17 +77,4 @@ const cartSchema = new mongoose.Schema(
   }
 );
 
-// Auto-calculate totalAmountOfWholeProduct before saving
-cartSchema.pre("save", function (next) {
-  if (this.items && this.items.length > 0) {
-    this.totalAmountOfWholeProduct = this.items.reduce(
-      (sum, item) => sum + item.totalPrice,
-      0
-    );
-  } else {
-    this.totalAmountOfWholeProduct = 0;
-  }
-  next();
-});
-
 module.exports = mongoose.models.Cart || mongoose.model("Cart", cartSchema);

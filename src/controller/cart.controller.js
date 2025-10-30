@@ -79,8 +79,8 @@ exports.addToCart = asyncHandler(async (req, res) => {
   //finalprice And total products
   const estimatedTotal = existingCart.items.reduce(
     (acc, item) => {
-      acc.finalPrice = item.totalPrice;
-      acc.totalProducts = item.quantity;
+      acc.finalPrice += item.totalPrice;
+      acc.totalProducts += item.quantity;
       return acc;
     },
     {
@@ -114,6 +114,7 @@ const applyCoupon = async (actualPrice, coupon) => {
       totalDiscountAmount = Math.ceil((actualPrice * discountValue) / 100);
       priceAfterDiscount = Math.ceil(actualPrice - totalDiscountAmount);
     } else {
+      //when discountType is "Tk"
       priceAfterDiscount = actualPrice - discountValue;
     }
 
@@ -145,6 +146,13 @@ exports.applyCoupon = asyncHandler(async (req, res) => {
   const cart = await cartModel.findOne(filter);
   const { priceAfterDiscount, totalDiscountAmount, appliedCoupon } =
     await applyCoupon(cart.totalAmountOfWholeProduct, coupon);
+
+  console.log({
+    before: cart.totalAmountOfWholeProduct,
+    after: priceAfterDiscount,
+    discount: totalDiscountAmount,
+    coupon: appliedCoupon.couponCode,
+  });
 
   cart.coupon = appliedCoupon._id;
   cart.discountAmount = totalDiscountAmount;
