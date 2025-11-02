@@ -28,9 +28,9 @@ exports.addToCart = asyncHandler(async (req, res) => {
     price = variant.retailPrice;
   }
 
-  const existingCart = await cartModel.findOne(filter);
+  addToCart = await cartModel.findOne(filter);
 
-  if (!existingCart) {
+  if (!addToCart) {
     addToCart = new cartModel({
       user: user,
       guestId: guestId,
@@ -49,17 +49,18 @@ exports.addToCart = asyncHandler(async (req, res) => {
       ],
     });
   } else {
-    const matchedCartItemIndex = existingCart.items.findIndex(
+    const matchedCartItemIndex = addToCart.items.findIndex(
       (cartItem) =>
-        cartItem.product == productId || cartItem.variant == variantId
+        cartItem.product.toString() === productId.toString() ||
+        cartItem.product.toString() === productId.toString()
     );
     console.log("Matched index:", matchedCartItemIndex);
 
     if (matchedCartItemIndex >= 0) {
-      existingCart.items[matchedCartItemIndex].quantity += quantity || 1;
-      existingCart.items[matchedCartItemIndex].totalPrice = Math.floor(
-        existingCart.items[matchedCartItemIndex].price *
-          existingCart.items[matchedCartItemIndex].quantity
+      addToCart.items[matchedCartItemIndex].quantity += quantity || 1;
+      addToCart.items[matchedCartItemIndex].totalPrice = Math.floor(
+        addToCart.items[matchedCartItemIndex].price *
+          addToCart.items[matchedCartItemIndex].quantity
       );
     } else {
       addToCart.items.push({
@@ -77,7 +78,7 @@ exports.addToCart = asyncHandler(async (req, res) => {
   }
 
   //finalprice And total products
-  const estimatedTotal = existingCart.items.reduce(
+  const estimatedTotal = addToCart.items.reduce(
     (acc, item) => {
       acc.finalPrice += item.totalPrice;
       acc.totalProducts += item.quantity;
@@ -90,11 +91,11 @@ exports.addToCart = asyncHandler(async (req, res) => {
   );
   console.log(estimatedTotal);
 
-  existingCart.totalAmountOfWholeProduct = estimatedTotal.finalPrice;
-  existingCart.totalProducts = estimatedTotal.totalProducts;
+  addToCart.totalAmountOfWholeProduct = estimatedTotal.finalPrice;
+  addToCart.totalProducts = estimatedTotal.totalProducts;
 
-  await existingCart.save();
-  apiResponse.sendsuccess(res, 200, "success", existingCart);
+  await addToCart.save();
+  apiResponse.sendsuccess(res, 200, "cart added Succesfully", addToCart);
 });
 
 //applyCoupon function
@@ -160,4 +161,117 @@ exports.applyCoupon = asyncHandler(async (req, res) => {
   cart.totalAmountOfWholeProduct = priceAfterDiscount;
   await cart.save();
   apiResponse.sendsuccess(res, 200, "Coupon Applied Successfully", cart);
+});
+
+//quantity increments
+exports.incrementQuantity = asyncHandler(async (req, res) => {
+  const { itemId } = req.body;
+
+  const cart = await cartModel.findOne({ "items._id": itemId });
+
+  const findItem = cart.items.findIndex((item) => (item._id = itemId));
+
+  const selectedItem = cart.items[findItem];
+  selectedItem.quantity += 1;
+  selectedItem.totalPrice = Math.ceil(
+    selectedItem.quantity * selectedItem.price
+  );
+
+  const estimatedTotal = cart.items.reduce(
+    (acc, item) => {
+      acc.finalPrice += item.totalPrice;
+      acc.totalProducts += item.quantity;
+      return acc;
+    },
+    {
+      totalProducts: 0,
+      finalPrice: 0,
+    }
+  );
+
+  cart.totalAmountOfWholeProduct = estimatedTotal.finalPrice;
+  cart.totalProducts = estimatedTotal.totalProducts;
+
+  await cart.save();
+  apiResponse.sendsuccess(
+    res,
+    200,
+    "cart quantity increased successfully.",
+    cart
+  );
+});
+
+//quantity decrement
+exports.decrementQuantity = asyncHandler(async (req, res) => {
+  const { itemId } = req.body;
+
+  const cart = await cartModel.findOne({ "items._id": itemId });
+
+  const findItem = cart.items.findIndex((item) => (item._id = itemId));
+
+  const selectedItem = cart.items[findItem];
+
+  if (selectedItem.quantity > 1) {
+    selectedItem.quantity -= 1;
+    selectedItem.totalPrice = Math.ceil(
+      selectedItem.quantity * selectedItem.price
+    );
+  } else {
+    selectedItem.quantity = selectedItem.quantity;
+    selectedItem.totalPrice = Math.ceil(
+      selectedItem.quantity * selectedItem.price
+    );
+  }
+
+  const estimatedTotal = cart.items.reduce(
+    (acc, item) => {
+      acc.finalPrice += item.totalPrice;
+      acc.totalProducts += item.quantity;
+      return acc;
+    },
+    {
+      totalProducts: 0,
+      finalPrice: 0,
+    }
+  );
+
+  cart.totalAmountOfWholeProduct = estimatedTotal.finalPrice;
+  cart.totalProducts = estimatedTotal.totalProducts;
+
+  await cart.save();
+  apiResponse.sendsuccess(
+    res,
+    200,
+    "cart quantity decresed successfully.",
+    cart
+  );
+});
+
+//remove cart items
+exports.removeCartItems = asyncHandler(async (req, res) => {
+  const { itemId } = req.body;
+
+  const cart = await cartModel.findOne({ "items._id": itemId });
+
+  const remainingItems = cart.items.filter((item) => item._id != itemId);
+  cart.items = remainingItems;
+
+  const estimatedTotal = cart.items.reduce(
+    (acc, item) => {
+      acc.finalPrice += item.totalPrice;
+      acc.totalProducts += item.quantity;
+      return acc;
+    },
+    {
+      totalProducts: 0,
+      finalPrice: 0,
+    }
+  );
+
+  cart.totalAmountOfWholeProduct = estimatedTotal.finalPrice;
+  cart.totalProducts = estimatedTotal.totalProducts;
+
+  await cart.save();
+  if (cart.items.length == 0) [await cartModel.deleteOne({ _id: cart._id })];
+  apiResponse.sendsuccess(res, 200, "cart has been remove successfully.", cart);
 });
