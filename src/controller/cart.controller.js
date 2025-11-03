@@ -5,7 +5,7 @@ const { validateCart } = require("../validation/cart.validation");
 const productModel = require("../models/product.model");
 const cartModel = require("../models/cart.model");
 const couponModel = require("../models/coupon.model");
-const { application } = require("express");
+const { getIO } = require("../socket-io/server");
 
 //create add to cart
 exports.addToCart = asyncHandler(async (req, res) => {
@@ -54,7 +54,6 @@ exports.addToCart = asyncHandler(async (req, res) => {
         cartItem.product.toString() === productId.toString() ||
         cartItem.product.toString() === productId.toString()
     );
-    console.log("Matched index:", matchedCartItemIndex);
 
     if (matchedCartItemIndex >= 0) {
       addToCart.items[matchedCartItemIndex].quantity += quantity || 1;
@@ -89,12 +88,18 @@ exports.addToCart = asyncHandler(async (req, res) => {
       finalPrice: 0,
     }
   );
-  console.log(estimatedTotal);
 
   addToCart.totalAmountOfWholeProduct = estimatedTotal.finalPrice;
   addToCart.totalProducts = estimatedTotal.totalProducts;
 
   await addToCart.save();
+
+  //socket.io
+  getIO().to("222").emit("addToCart", {
+    messsage: "item added to the cart",
+    data: null,
+  });
+  //socket.io
   apiResponse.sendsuccess(res, 200, "cart added Succesfully", addToCart);
 });
 
