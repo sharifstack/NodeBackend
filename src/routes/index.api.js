@@ -13,5 +13,6 @@ _.use("/variant", require("./api/variant.api"));
 _.use("/warranty", require("./api/warranty.api"));
 _.use("/reviews", require("./api/reviews.api"));
 _.use("/cart", require("./api/cart.api"));
+_.use("/delivery", require("./api/delivery.api"));
 
 module.exports = _;

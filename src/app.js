@@ -18,6 +18,7 @@ app.use("/api/v1", require("./routes/index.api"));
 
 //==global error handler
 app.use(globalErrorHandler);
-
+//socket-io
 initsocketIO(httpServer);
+//socket-io
 module.exports = { httpServer };
