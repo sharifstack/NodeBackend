@@ -61,6 +61,10 @@ const variantSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    totalSale: {
+      type: Number,
+      min: 0,
+    },
   },
   {
     timestamps: true,

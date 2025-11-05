@@ -65,7 +65,7 @@ const productSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       type: String,
     },
-   
+
     availabilityStatus: {
       type: String,
       enum: ["In Stock", "Out Of Stock", "Pre-Order"],
@@ -152,6 +152,10 @@ const productSchema = new mongoose.Schema(
     minimumQuantity: {
       type: Number,
       default: 1,
+    },
+    totalSale: {
+      type: Number,
+      min: 0,
     },
   },
   {

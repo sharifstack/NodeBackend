@@ -14,5 +14,7 @@ _.use("/warranty", require("./api/warranty.api"));
 _.use("/reviews", require("./api/reviews.api"));
 _.use("/cart", require("./api/cart.api"));
 _.use("/delivery", require("./api/delivery.api"));
+_.use("/order", require("./api/order.api"));
+_.use("/payment", require("./api/paymentGateway.api"));
 
 module.exports = _;
