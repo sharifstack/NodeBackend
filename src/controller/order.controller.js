@@ -67,9 +67,7 @@ exports.createOrder = asyncHandler(async (req, res) => {
   });
 
   const charge = await applyDeliveryCharge(deliveryCharge);
-  order.finalAmount =
-    Math.ceil(cart.totalAmountOfWholeProduct + charge.amount) -
-    cart.discountAmount;
+  order.finalAmount = Math.ceil(cart.totalAmountOfWholeProduct + charge.amount) - cart.discountAmount;
   order.deliveryZone = charge.name;
 
   //Transaction ID
