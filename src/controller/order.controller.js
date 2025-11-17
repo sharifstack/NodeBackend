@@ -41,11 +41,11 @@ exports.createOrder = asyncHandler(async (req, res) => {
       };
 
       if (item.product) {
-        return productModel.findOneAndUpdate(
-          { _id: item.product },
-          updateItemsFields,
-          { new: true }
-        );
+        return productModel
+          .findOneAndUpdate({ _id: item.product }, updateItemsFields, {
+            new: true,
+          })
+          .select("-qrCode -barCode -updatedAt -tag -reviews");
       } else {
         return variantModel.findOneAndUpdate(
           { _id: item.variant },
@@ -67,7 +67,9 @@ exports.createOrder = asyncHandler(async (req, res) => {
   });
 
   const charge = await applyDeliveryCharge(deliveryCharge);
-  order.finalAmount = Math.ceil(cart.totalAmountOfWholeProduct + charge.amount) - cart.discountAmount;
+  order.finalAmount =
+    Math.ceil(cart.totalAmountOfWholeProduct + charge.amount) -
+    cart.discountAmount;
   order.deliveryZone = charge.name;
 
   //Transaction ID
@@ -85,6 +87,9 @@ exports.createOrder = asyncHandler(async (req, res) => {
     order.paymentMethod = "cod";
     order.paymentStatus = "Pending";
     order.invoiceId = invoice.invoiceId;
+    await order.save();
+
+    apiResponse.sendsuccess(res, 200, "Order placed successfully COD", order);
   } else {
     const data = {
       total_amount: order.finalAmount,
@@ -165,4 +170,94 @@ exports.createOrder = asyncHandler(async (req, res) => {
       );
     }
   }
+});
+
+//get all orders || by phone number
+exports.getAllOrders = asyncHandler(async (req, res) => {
+  const { phoneNumber } = req.query;
+  const allOrders = await orderModel
+    .find(
+      phoneNumber
+        ? { "shippinginfo.phone": { $regex: phoneNumber, $options: "i" } }
+        : {}
+    )
+    .sort({ createdAt: -1 });
+  if (!allOrders) throw new customError(404, "No orders found");
+
+  apiResponse.sendsuccess(
+    res,
+    200,
+    "All orders fetched successfully",
+    allOrders
+  );
+});
+
+//get order stutus
+exports.getOrderStatus = asyncHandler(async (req, res) => {
+  const orderStatus = await orderModel.aggregate([
+    {
+      $group: {
+        _id: "$orderStatus",
+        count: { $sum: 1 },
+      },
+    },
+
+    {
+      $group: {
+        _id: null,
+        totalOrders: { $sum: "$count" },
+        breakdown: {
+          $push: {
+            orderStatus: "$_id",
+            count: "$count",
+          },
+        },
+      },
+    },
+
+    {
+      $project: {
+        _id: 0,
+        totalOrders: 1,
+        breakdown: 1,
+      },
+    },
+  ]);
+
+  apiResponse.sendsuccess(
+    res,
+    200,
+    "Order status fetched successfully",
+    orderStatus
+  );
+});
+
+//update order by id
+exports.updateOrderById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  const updatedOrder = await orderModel.findOneAndUpdate(
+    { _id: id },
+    { orderStatus: status },
+    { new: true }
+  );
+  if (!updatedOrder) throw new customError(404, "Order not found");
+  apiResponse.sendsuccess(res, 200, "Order updated successfully", updatedOrder);
+});
+
+//courier pending status controller
+exports.courierPendingStatus = asyncHandler(async (req, res) => {
+  const courierPending = await orderModel.find({
+    orderStatus: "CourierPending",
+  });
+
+  if (!courierPending) throw new customError(404, "No orders found");
+
+  apiResponse.sendsuccess(
+    res,
+    200,
+    "Courier pending orders fetched successfully",
+    courierPending
+  );
 });

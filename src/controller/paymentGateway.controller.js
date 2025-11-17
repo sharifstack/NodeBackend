@@ -18,9 +18,13 @@ exports.successPayment = asyncHandler(async (req, res) => {
   console.log("validatePayment", validatePayment);
   if (validatePayment.status !== "VALID")
     throw new customError(400, "Payment validation failed");
-  orderModel.findOneAndUpdate(
+  await orderModel.findOneAndUpdate(
     { transactionId: validatePayment.tran_id },
-    { paymentStatus: validatePayment.status ? "VALID" : "success" }
+    {
+      paymentStatus: validatePayment.status ? "VALID" : "success",
+      valId: validatePayment.val_id,
+      paymentGatewayData: validatePayment,
+    }
   );
 
   apiResponse.sendsuccess(res, 200, "payment successful", null);
