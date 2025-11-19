@@ -16,5 +16,6 @@ _.use("/cart", require("./api/cart.api"));
 _.use("/delivery", require("./api/delivery.api"));
 _.use("/order", require("./api/order.api"));
 _.use("/payment", require("./api/paymentGateway.api"));
+_.use("/courier", require("./api/courier.api"));
 
 module.exports = _;
