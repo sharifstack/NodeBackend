@@ -219,7 +219,6 @@ exports.login = asyncHandler(async (req, res) => {
     secure: process.env.NODE_ENV == "development" ? false : true,
     samesite: "none",
     path: "/",
-    maxAge: 15 * 24 * 60 * 60 * 1000,
   });
 
   //------Saving The RefreshToken Into database------//
@@ -243,7 +242,7 @@ exports.logout = asyncHandler(async (req, res) => {
   res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: process.env.NODE_ENV == "development" ? false : true,
-    samesite: "none",
+    samesite: "lax",
     path: "/",
   });
   user.refreshToken = null;
