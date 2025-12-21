@@ -201,10 +201,10 @@ exports.resetPassword = asyncHandler(async (req, res) => {
 //-----Login----//
 exports.login = asyncHandler(async (req, res) => {
   const { phoneNumber, email, password } = req.body;
-  if (phoneNumber == undefined && email == undefined)
+  if (!phoneNumber && !email)
     throw new customError(401, "PhoneNumber or Email Missing");
   //----search the user in the database-----//
-  const user = await userModel.findOne({ phoneNumber, email });
+  const user = await userModel.findOne({ $or: [{ phoneNumber }, { email }] });
   if (!user) throw new customError(401, "User Not Found");
 
   //----Checking The password-----/
@@ -216,15 +216,16 @@ exports.login = asyncHandler(async (req, res) => {
   const refreshToken = await user.generateRefreshToken();
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV == "development" ? false : true,
-    samesite: "none",
+    // secure: process.env.NODE_ENV == "development" ? false : true,
+    secure: false,
+    samesite: "lax",
     path: "/",
   });
 
   //------Saving The RefreshToken Into database------//
   user.refreshToken = refreshToken;
   await user.save();
-  apiResponse.sendsuccess(res, 201, "Login Successful", {
+  apiResponse.sendsuccess(res, 200, "Login Successful", {
     accessToken: accessToken,
     userName: user.name,
     email: user.email,

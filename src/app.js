@@ -5,13 +5,18 @@ const { globalErrorHandler } = require("../utils/globalErrorHandler");
 const { createServer } = require("http");
 const { initsocketIO } = require("./socket-io/server");
 const app = express();
+const httpServer = createServer(app);
 
 //==make a json to object
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-const httpServer = createServer(app);
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
+  })
+);
 
 //==routes
 app.use("/api/v1", require("./routes/index.api"));
