@@ -10,13 +10,27 @@ const {
 
 exports.createCategory = asyncHandler(async (req, res) => {
   const value = await validateCategory(req);
-  const imageUrl = await uploadCloudinaryFIle(value?.image?.path);
   const category = await new categoryModel({
     name: value.name,
-    image: imageUrl,
+    image: null,
   }).save();
   if (!category) throw new customError(500, "Category creation failed");
   apiResponse.sendsuccess(res, 201, "Category Created", category);
+
+  (async () => {
+    try {
+      const imageUrl = await uploadCloudinaryFIle(value?.image?.path);
+      const updateCategoryImg = await categoryModel.findByIdAndUpdate(
+        {
+          _id: category._id,
+        },
+        { image: imageUrl }
+      );
+      console.log("Category Image Successfully Added", updateCategoryImg);
+    } catch (error) {
+      console.log("Category Image Failed to Add", error);
+    }
+  })();
 });
 
 exports.getAllCategory = asyncHandler(async (req, res) => {
