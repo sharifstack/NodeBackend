@@ -139,7 +139,7 @@ userSchema.methods.comparePassword = async function (humanPass) {
 
 //generate access token
 userSchema.methods.generateAccessToken = async function () {
-  const accessToken = await jwt.sign(
+  const accessToken = jwt.sign(
     {
       userid: this._id,
       email: this.email,
@@ -154,7 +154,7 @@ userSchema.methods.generateAccessToken = async function () {
 
 //generate refresh token
 userSchema.methods.generateRefreshToken = async function () {
-  return await jwt.sign(
+  return jwt.sign(
     {
       userid: this._id,
     },
@@ -165,7 +165,7 @@ userSchema.methods.generateRefreshToken = async function () {
 
 //verify access token
 userSchema.methods.verifyAccessToken = async function (token) {
-  const isValidAccessToken = await jwt.verify(
+  const isValidAccessToken = jwt.verify(
     token,
     process.env.ACCESSTOKEN_SECRET
   );
@@ -176,7 +176,7 @@ userSchema.methods.verifyAccessToken = async function (token) {
 
 //verify refresh token
 userSchema.methods.verifyRefreshToken = async function (token) {
-  const isValidRefreshToken = await jwt.verify(
+  const isValidRefreshToken = jwt.verify(
     token,
     process.env.REFRESHTOKEN_SECRET
   );

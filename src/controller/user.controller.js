@@ -255,7 +255,7 @@ exports.logout = asyncHandler(async (req, res) => {
 exports.refreshToken = asyncHandler(async (req, res) => {
   const token = req.cookies.refreshToken;
   let decode = null;
-  console.log("refresh  token", token);
+  console.log("refresh token", token);
 
   try {
     decode = jwt.verify(token, process.env.REFRESHTOKEN_SECRET);
@@ -264,11 +264,11 @@ exports.refreshToken = asyncHandler(async (req, res) => {
   }
 
   // // find the user
-  const user = await userModel.findById(decode.userId);
+  const user = await userModel.findById(decode.userid);
 
   const newToken = await user.generateAccessToken();
 
   apiResponse.sendsuccess(res, 200, "new token get Sucesfull", {
-    accesToken: newToken,
+    accessToken: newToken,
   });
 });
