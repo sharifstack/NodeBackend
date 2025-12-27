@@ -14,7 +14,6 @@ exports.authGuard = async (req, res, next) => {
     let tokenValue;
     try {
       tokenValue = jwt.verify(accessToken, process.env.ACCESSTOKEN_SECRET);
-      console.log(tokenValue);
     } catch (err) {
       console.log(" tokenValue catch", err);
       throw new customError(410, "Token invalid or expired");

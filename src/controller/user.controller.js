@@ -254,6 +254,7 @@ exports.logout = asyncHandler(async (req, res) => {
 // refresh token
 exports.refreshToken = asyncHandler(async (req, res) => {
   const token = req.cookies.refreshToken;
+  console.log("refresh token =>", req.cookies.refreshToken);
   let decode = null;
   console.log("refresh token", token);
 

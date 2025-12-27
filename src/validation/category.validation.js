@@ -16,7 +16,7 @@ const categoryValidationSchema = joi.object(
 
 exports.validateCategory = async (req) => {
   try {
-    const value = await categoryValidationSchema.validateAsync(req.body);;
+    const value = await categoryValidationSchema.validateAsync(req.body);
     //mimeType
     const acceptType = ["image/jpg", "image/jpeg", "image/png", "image/webp"];
     if (!acceptType.includes(req?.files?.image[0].mimetype)) {
