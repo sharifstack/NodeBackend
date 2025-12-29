@@ -38,3 +38,43 @@ exports.singleBrand = asyncHandler(async (req, res) => {
 });
 
 
+
+
+//----update brand----//
+exports.updateBrand = asyncHandler(async (req, res) => {
+  const { slug } = req.params;
+  if (!slug) throw new customError(400, "slug is missing");
+
+  const brand = await brandModel.findOne({ slug: slug });
+  if (!brand) throw new customError(500, "brand not found");
+
+  // update name
+  if (req.body.name) {
+    brand.name = req.body.name;
+  }
+
+  // update since
+  if (req.body.since) {
+    brand.since = req.body.since;
+  }
+
+  // update image
+  if (req.files?.image) {
+    // delete old image from cloudinary
+    const parts = brand.image.split("/");
+    const imageName = parts[parts.length - 1];
+    const result = await deleteCloudinaryFile(imageName.split("?")[0]);
+    if (result !== "ok") throw new customError(400, "image not deleted");
+
+    // upload new image
+    const imageUrl = await uploadCloudinaryFIle(
+      req.files.image[0].path
+    );
+    brand.image = imageUrl;
+  }
+
+  await brand.save();
+
+  apiResponse.sendsuccess(res, 200, "brand has been updated", brand);
+});
+
