@@ -12,4 +12,5 @@ _.route("/update-brand/:slug").put(
   upload.fields([{ name: "image", maxCount: 1 }]),
   brandController.updateBrand
 );
+_.route("/delete-brand/:slug").delete(brandController.deleteBrand);
 module.exports = _;

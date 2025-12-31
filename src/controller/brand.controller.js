@@ -21,7 +21,7 @@ exports.createBrand = asyncHandler(async (req, res) => {
 
 //----get all brand----//
 exports.getAllBrand = asyncHandler(async (req, res) => {
-  const allBrand = await brandModel.find();
+  const allBrand = await brandModel.find().sort({ createdAt: -1 });
   if (!allBrand) throw new customError(500, "brand not found");
   apiResponse.sendsuccess(res, 200, "brand retrive successfull", allBrand);
 });
@@ -36,9 +36,6 @@ exports.singleBrand = asyncHandler(async (req, res) => {
 
   apiResponse.sendsuccess(res, 200, "brand has been found!", singleBrand);
 });
-
-
-
 
 //----update brand----//
 exports.updateBrand = asyncHandler(async (req, res) => {
@@ -67,9 +64,7 @@ exports.updateBrand = asyncHandler(async (req, res) => {
     if (result !== "ok") throw new customError(400, "image not deleted");
 
     // upload new image
-    const imageUrl = await uploadCloudinaryFIle(
-      req.files.image[0].path
-    );
+    const imageUrl = await uploadCloudinaryFIle(req.files.image[0].path);
     brand.image = imageUrl;
   }
 
@@ -78,3 +73,28 @@ exports.updateBrand = asyncHandler(async (req, res) => {
   apiResponse.sendsuccess(res, 200, "brand has been updated", brand);
 });
 
+//----delete brand----//
+exports.deleteBrand = asyncHandler(async (req, res) => {
+  const { slug } = req.params;
+  if (!slug) throw new customError(400, "slug is missing");
+
+  // find brand
+  const brand = await brandModel.findOne({ slug: slug });
+  if (!brand) throw new customError(500, "brand not found");
+
+  // delete image from cloudinary
+  if (brand.image) {
+    const parts = brand.image.split("/");
+    const imageName = parts[parts.length - 1];
+    const result = await deleteCloudinaryFile(imageName.split("?")[0]);
+
+    if (result !== "ok") {
+      throw new customError(400, "image not deleted");
+    }
+  }
+
+  // delete brand from database
+  const removedBrand = await brandModel.findOneAndDelete({ slug: slug });
+
+  apiResponse.sendsuccess(res, 200, "brand deleted successfully", removedBrand);
+});
