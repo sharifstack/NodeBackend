@@ -5,7 +5,7 @@ const { required } = require("joi");
 
 const productSchema = new mongoose.Schema(
   {
-    Name: {
+    name: {
       type: String,
       required: true,
       trim: true,
@@ -160,13 +160,13 @@ const productSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // ------- slug creation ------- //
 productSchema.pre("save", function (next) {
-  if (this.isModified("Name")) {
-    this.slug = slugify(this.Name, {
+  if (this.isModified("name")) {
+    this.slug = slugify(this.name, {
       replacement: "-",
       remove: undefined,
       lower: true,
@@ -180,8 +180,8 @@ productSchema.pre("save", function (next) {
 // ------- update slug on update ------- //
 productSchema.pre("findOneAndUpdate", function (next) {
   const update = this.getUpdate();
-  if (update.Name) {
-    update.slug = slugify(update.Name, {
+  if (update.name) {
+    update.slug = slugify(update.name, {
       replacement: "-",
       remove: undefined,
       lower: true,
@@ -194,6 +194,14 @@ productSchema.pre("findOneAndUpdate", function (next) {
 });
 
 // ------- ensure unique slug ------- //
+// productSchema.pre("save", async function (next) {
+//   const slugExists = await this.constructor.findOne({ slug: this.slug });
+//   if (slugExists && slugExists._id.toString() !== this._id.toString()) {
+//     throw new customError(401, "Product Name Already Exists");
+//   }
+//   next();
+// });
+
 productSchema.pre("save", async function (next) {
   const slugExists = await this.constructor.findOne({ slug: this.slug });
   if (slugExists && slugExists._id.toString() !== this._id.toString()) {

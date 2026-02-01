@@ -24,7 +24,7 @@ exports.createCategory = asyncHandler(async (req, res) => {
         {
           _id: category._id,
         },
-        { image: imageUrl }
+        { image: imageUrl },
       );
       console.log("Category Image Successfully Added", updateCategoryImg);
     } catch (error) {
@@ -89,6 +89,6 @@ exports.deleteCategory = asyncHandler(async (req, res) => {
     res,
     200,
     "category deleted succesfully",
-    removecategory
+    removecategory,
   );
 });

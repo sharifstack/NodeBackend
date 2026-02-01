@@ -4,7 +4,7 @@ const { customError } = require("../../utils/customError");
 // Product validation schema
 const productValidationSchema = joi.object(
   {
-    Name: joi.string().trim().required().messages({
+    name: joi.string().trim().required().messages({
       "string.empty": "Product name is required.",
       "any.required": "Product name field cannot be empty.",
     }),
@@ -66,7 +66,7 @@ const productValidationSchema = joi.object(
   },
   {
     allowUnknown: true,
-  }
+  },
 );
 
 // Product validator function
@@ -96,7 +96,7 @@ exports.validateProduct = async (req) => {
     console.log("Error from product validation", error);
     throw new customError(
       401,
-      error.details ? error.details[0].message : error.message
+      error.details ? error.details[0].message : error.message,
     );
   }
 };

@@ -51,15 +51,27 @@ exports.createProduct = asyncHandler(async (req, res) => {
     res,
     201,
     "Product has been created sucessfully",
-    product
+    product,
   );
 });
 
 //get all product
 exports.getAllProduct = asyncHandler(async (req, res) => {
+  const { productType } = req.query;
+  const queryType = {};
+
+  if (productType == "single") {
+    queryType.varientType = "singleVarient";
+  } else if (productType == "multiple") {
+    queryType.varientType = "multipleVarient";
+  } else {
+    queryType = {};
+  }
+
   getAllProducts = await productModel
-    .find({})
+    .find(queryType)
     .populate("category subCategory brand")
+    .select("-barCode -qrCode")
     .sort({ CreatedAt: -1 });
 
   if (!getAllProducts?.length) throw new customError(401, "Product Not Found");
@@ -68,17 +80,17 @@ exports.getAllProduct = asyncHandler(async (req, res) => {
     res,
     201,
     "product retrive sucessfully",
-    getAllProducts
+    getAllProducts,
   );
 });
 
 //single product
 exports.singleProduct = asyncHandler(async (req, res) => {
-  const { slug } = req.params;
+  const { slug } = req.query;
   if (!slug) throw new customError(500, "Slug is Missing");
 
   const product = await productModel
-    .findOne({ slug: slug })
+    .findOne({ slug })
     .populate("category subCategory brand")
     .sort({ CreatedAt: -1 });
   if (!product) throw new customError(401, "Product Not Found");
@@ -95,7 +107,7 @@ exports.updateProduct = asyncHandler(async (req, res) => {
   const productupdate = await productModel.findOneAndUpdate(
     { slug: slug },
     { ...req.body },
-    { new: true }
+    { new: true },
   );
 
   if (!productupdate) throw new customError(500, "product not found");
@@ -104,7 +116,7 @@ exports.updateProduct = asyncHandler(async (req, res) => {
     res,
     200,
     "product has been updated sucessfully",
-    productupdate
+    productupdate,
   );
 });
 
@@ -129,7 +141,7 @@ exports.uploadProductImage = asyncHandler(async (req, res) => {
     res,
     201,
     "Image has been uploaded sucessfully",
-    product
+    product,
   );
 });
 
@@ -147,7 +159,7 @@ exports.removeProductImage = asyncHandler(async (req, res) => {
   if (!product) throw new customError(401, "product not found");
 
   const updatedImageList = await product.image.filter(
-    (img) => img !== image_Id
+    (img) => img !== image_Id,
   );
   const Public_Id = PublicId(image_Id);
   await deleteCloudinaryFile(Public_Id);
@@ -181,7 +193,7 @@ exports.deleteProduct = asyncHandler(async (req, res) => {
     res,
     200,
     "Product has been deleted sucessfully",
-    product
+    product,
   );
 });
 
@@ -270,7 +282,7 @@ exports.priceRange = asyncHandler(async (req, res) => {
     res,
     200,
     "Products has been found In This Price Range",
-    product
+    product,
   );
 });
 
@@ -318,6 +330,6 @@ exports.productStatus = asyncHandler(async (req, res) => {
     res,
     200,
     "product status updated successfully",
-    product
+    product,
   );
 });

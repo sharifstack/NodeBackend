@@ -5,23 +5,23 @@ const upload = require("../../middleware/multer.middleware");
 
 _.route("/create-product").post(
   upload.fields([{ name: "image", maxCount: 10 }]),
-  productController.createProduct
+  productController.createProduct,
 );
 _.route("/getall-products").get(productController.getAllProduct);
-_.route("/single-product/:slug").get(productController.singleProduct);
+_.route("/single-product").get(productController.singleProduct);
 _.route("/update-product/:slug").put(productController.updateProduct);
 _.route("/upload-productimg/:slug").put(
   upload.fields([{ name: "image", maxCount: 10 }]),
-  productController.uploadProductImage
+  productController.uploadProductImage,
 );
 _.route("/delete-productimg/:slug").delete(
   upload.fields([{ name: "image", maxCount: 10 }]),
-  productController.removeProductImage
+  productController.removeProductImage,
 );
 
 _.route("/delete-product/:slug").delete(
   upload.fields([{ name: "image", maxCount: 10 }]),
-  productController.deleteProduct
+  productController.deleteProduct,
 );
 
 _.route("/search-products").get(productController.searchByProducts);
