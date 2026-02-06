@@ -30,4 +30,5 @@ _.route("/product-pricerange").get(productController.priceRange);
 _.route("/product-productodering").get(productController.productOdering);
 _.route("/product-productstatus").put(productController.productStatus);
 
+
 module.exports = _;

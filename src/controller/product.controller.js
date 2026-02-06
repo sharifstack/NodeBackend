@@ -133,7 +133,7 @@ exports.uploadProductImage = asyncHandler(async (req, res) => {
   //uploading to cloudinary
   for (let img of req?.files?.image) {
     const imgURl = await uploadCloudinaryFIle(img.path);
-    product.image.push(imgURl);
+    product.image = [imgURl];
   }
 
   await product.save();

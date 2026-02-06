@@ -13,9 +13,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: [
+      "http://localhost:5173",
+      "https://admin-dashboard-seven-alpha.vercel.app",
+    ],
+
     credentials: true,
-  })
+  }),
 );
 
 //==routes
