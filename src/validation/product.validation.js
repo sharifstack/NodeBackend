@@ -16,7 +16,6 @@ const productValidationSchema = joi.object(
     brand: joi.string().allow("", null),
     variant: joi.string().allow("", null),
     discount: joi.string().allow("", null),
-    tag: joi.array().items(joi.string().trim()).default([]),
     manufactureCountry: joi.string().allow("", null),
     rating: joi.number().min(0).max(5).default(0),
     warrantyInformation: joi.string().allow("", null),
@@ -27,10 +26,6 @@ const productValidationSchema = joi.object(
       .valid("In Stock", "Out Of Stock", "Pre-Order")
       .default("In Stock"),
     shippingInformation: joi.string().allow("", null),
-    sku: joi.string().required().messages({
-      "string.empty": "SKU is required.",
-      "any.required": "SKU field cannot be empty.",
-    }),
     qrCode: joi.string().allow("", null),
     barCode: joi.string().allow("", null),
     groupUnit: joi.string().valid("Box", "Packet", "Dozen", "Custom"),
@@ -74,26 +69,30 @@ exports.validateProduct = async (req) => {
   try {
     const value = await productValidationSchema.validateAsync(req.body);
 
-    // Image validation
-    const acceptType = ["image/jpg", "image/jpeg", "image/png", "image/webp"];
+    if (value.varientType == "singleVarient") {
+      // Image validation
+      const acceptType = ["image/jpg", "image/jpeg", "image/png", "image/webp"];
 
-    if (!req?.files?.image || req.files.image.length === 0) {
-      throw new customError(400, "Product image is required.");
-    }
-
-    for (const file of req.files.image) {
-      if (!acceptType.includes(file.mimetype)) {
-        throw new customError(400, "This image format is not allowed.");
+      if (!req?.files?.image || req.files.image.length === 0) {
+        throw new customError(400, "Product image is required.");
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        throw new customError(401, "Maximum image size is 5MB.");
-      }
-    }
+      for (const file of req.files.image) {
+        if (!acceptType.includes(file.mimetype)) {
+          throw new customError(400, "This image format is not allowed.");
+        }
 
-    return { ...value, image: req.files.image };
+        if (file.size > 5 * 1024 * 1024) {
+          throw new customError(400, "Maximum image size is 5MB.");
+        }
+      }
+
+      return { ...value, image: req.files.image };
+    } else {
+      return value;
+    }
   } catch (error) {
-    console.log("Error from product validation", error);
+    console.log("Error from validateProduct method:", error);
     throw new customError(
       401,
       error.details ? error.details[0].message : error.message,

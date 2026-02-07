@@ -20,17 +20,19 @@ exports.createProduct = asyncHandler(async (req, res) => {
   //destructuring image form productData
   const { image } = productData;
 
-  //upload allimages into cloudinary
   let allImages = [];
-  for (let imgFile of image) {
-    const imageinfo = await uploadCloudinaryFIle(imgFile.path);
-    allImages.push(imageinfo);
+  if (productData.varientType == "singleVarient") {
+    //upload allimages into cloudinary
+    for (let imgFile of image) {
+      const imageinfo = await uploadCloudinaryFIle(imgFile.path);
+      allImages.push(imageinfo);
+    }
   }
 
   //saving created product into database
   const product = await productModel.create({
     ...productData,
-    image: allImages,
+    image: allImages?.length > 0 ? allImages : null,
   });
 
   if (!product) throw new customError(500, "product creation failed.");
@@ -40,7 +42,10 @@ exports.createProduct = asyncHandler(async (req, res) => {
   const qrCode = await generateQR(qrCodeLink);
 
   //Generate BarCode
-  const barCode = await barCodeGenerator(product.sku);
+  let barCode = "";
+  if (productData.varientType == "singleVarient") {
+    barCode = await barCodeGenerator(product.sku);
+  }
 
   //saving QR code and Bar code into database
   product.qrCode = qrCode;
@@ -179,10 +184,11 @@ exports.deleteProduct = asyncHandler(async (req, res) => {
   const product = await productModel.findOne({ slug: slug });
   if (!product) throw new customError(401, "product not found");
 
-  for (let img of product.image) {
-    const public_id = PublicId(img);
-    const result = await deleteCloudinaryFile(public_id);
-    console.log("deleted", result);
+  if (product.varientType == "singleVarient") {
+    for (let img of product.image) {
+      const public_id = PublicId(img);
+      await deleteCloudinaryFile(public_id);
+    }
   }
 
   const deleteProduct = await productModel.deleteOne({ _id: product._id });

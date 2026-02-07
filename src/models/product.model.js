@@ -40,12 +40,7 @@ const productSchema = new mongoose.Schema(
       ref: "Discount",
     },
     image: [{}],
-    tag: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
+    tag: [String],
     manufactureCountry: {
       type: String,
     },
@@ -77,7 +72,6 @@ const productSchema = new mongoose.Schema(
     sku: {
       type: String,
       unique: true,
-      required: true,
     },
     qrCode: {
       type: String,
